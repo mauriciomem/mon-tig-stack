@@ -1,0 +1,78 @@
+# monitoring swarm stack
+
+version: '3.7'
+
+services:
+    influxdb:
+        image: influxdb:1.7
+        networks:
+            - mon-fe
+            - mon-be
+        ports:
+            - '8086:8086'
+        environment:
+            INFLUXDB_ADMIN_PASSWORD: ${IFXDB_ADMIN_PASSWD}
+            INFLUXDB_ADMIN_USER: ${IFXDB_ADMIN_USER}
+            INFLUXDB_HTTP_AUTH_ENABLED: "true"
+        configs:
+            - source: influxdb-conf
+              target: /etc/influxdb/influxdb.conf
+              mode: 0440
+        volumes:
+            - 'influxdb-data:/var/lib/influxdb'
+            - 'influxdb-init:/docker-entrypoint-initdb.d'
+    telegraf:
+        image: telegraf:1.13
+        networks:
+            - mon-be
+        volumes:
+            - 'telegraf-conf:/etc/telegraf'
+    grafana:
+        image: grafana/grafana:6.5.0
+        networks:
+            - mon-be
+            - mon-fe
+        ports:
+            - '3000:3000'
+        environment:
+            GF_SECURITY_ADMIN_USER: ${GF_ADMIN_USER}
+            GF_SECURITY_ADMIN_PASSWORD: ${GF_ADMIN_PASSWD}
+            GF_USERS_ALLOW_SIGN_UP: "false"
+            GF_INSTALL_PLUGINS: ${GF_PLUGINS}
+        volumes:
+            - 'grafana-data:/var/lib/grafana'
+        configs:
+            - source: grafana-conf
+              target: /etc/grafana/grafana.ini
+              mode: 0777
+
+networks:
+    mon-fe:
+    mon-be:
+volumes:
+    influxdb-data:
+        driver_opts:
+            type: none
+            device: ${IFXDB_VOL_DATA}/data
+            o: bind
+    influxdb-init:
+        driver_opts:
+            type: none
+            device: ${IFXDB_VOL_SCRIPTS}/scripts
+            o: bind
+    grafana-data:
+        driver_opts:
+            type: none
+            device: ${GF_VOL_DATA}/data
+            o: bind
+    telegraf-conf:
+        driver_opts:
+            type: none
+            device: ${TGF_VOL_CONF}/conf
+            o: bind
+
+configs:
+    influxdb-conf:
+        file: ${IFXDB_CONF}/conf/influxdb.conf
+    grafana-conf:
+        file: ${GF_CONF}/conf/grafana.ini
