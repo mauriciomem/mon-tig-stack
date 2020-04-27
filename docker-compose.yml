@@ -39,12 +39,13 @@ services:
             GF_SECURITY_ADMIN_PASSWORD: ${GF_ADMIN_PASSWD}
             GF_USERS_ALLOW_SIGN_UP: "false"
             GF_INSTALL_PLUGINS: ${GF_PLUGINS}
+            GF_PATHS_PROVISIONING: ${GF_PROV}
         volumes:
             - 'grafana-data:/var/lib/grafana'
         configs:
             - source: grafana-conf
-              target: /etc/grafana/grafana.ini
-              mode: 0777
+              target: /etc/grafana/
+              mode: 0444
 
 networks:
     mon-fe:
@@ -75,4 +76,4 @@ configs:
     influxdb-conf:
         file: ${IFXDB_CONF}/conf/influxdb.conf
     grafana-conf:
-        file: ${GF_CONF}/conf/grafana.ini
+        file: ${GF_CONF}/conf/

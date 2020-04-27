@@ -1,0 +1,25 @@
+apiVersion: 1
+
+deleteDatasources:
+  - name: prometheus-swarm
+  - name: influxdb-vsphere
+
+datasources:
+  - name: prometheus-swarm
+    type: prometheus
+    access: proxy
+    editable: true
+    url: http://prometheus:9090
+
+  - name: influxdb-vsphere
+    type: influxdb
+    access: proxy
+    editable: true
+    database: ${GF_INFDB_DB}
+    user: ${GF_INFDB_USER}
+    url: http://influxdb:8086
+    jsonData:
+      httpMode: GET
+      timeInterval: "15s"
+    secureJsonData:
+      password: ${GF_INFDB_PASSWD}
